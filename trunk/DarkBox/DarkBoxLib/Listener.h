@@ -24,6 +24,9 @@ private:
 	bool _continue;
 public:
 	__event void Accept(SOCKET socket);
+	__event void Error(char* function, int errorCode);
+	__event void Start();
+	__event void Stop();
 	Listener(char* listenAddress, int listenPort);
 	void LaunchListenRoutine();
 private:
