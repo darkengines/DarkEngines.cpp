@@ -29,6 +29,7 @@ public:
 	__event void Stop();
 	Listener(char* listenAddress, int listenPort);
 	void LaunchListenRoutine();
+	void StopListenRoutine();
 private:
 	DWORD ListenRoutine();
 	static DWORD ThreadLauncher(LPVOID routineParams);

@@ -74,17 +74,25 @@ DWORD Listener::ListenRoutine() {
 		if (socket == INVALID_SOCKET) {
 			closesocket(_listenSocket);
 			WSACleanup();
-			Error("accept", WSAGetLastError());
+			if (error != 0) {
+				Error("accept", WSAGetLastError());
+			}
 			Stop();
 			return 1;
 		}
-	}closesocket(_listenSocket);
+		Accept(socket);
+	}
+	closesocket(_listenSocket);
 	WSACleanup();
-	Accept(socket);
 	Stop();
 	return 0;
 }
 
 DWORD Listener::ThreadLauncher(LPVOID routineParams) {
 	return ((Listener*)routineParams)->ListenRoutine();
+}
+
+void Listener::StopListenRoutine() {
+	_continue = false;
+	closesocket(_listenSocket);
 }

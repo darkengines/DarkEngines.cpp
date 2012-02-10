@@ -5,9 +5,9 @@
 int main(int argc, char** argv) {
 	Server* server = new Server();
 	server->Start();
-	while (1) {
-
-	}
+	Sleep(3000);
+	server->Stop();
+	getchar();
 	return 0;
 }
 
