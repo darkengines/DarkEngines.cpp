@@ -11,6 +11,8 @@
 
 #include <Windows.h>
 
+#define BUFFER_SIZE 2048
+
 //////////////////////////////////////////////
 //	Class name: Client
 //////////////////////////////////////////////
@@ -19,24 +21,19 @@ class Client {
 private:
 	SOCKET _clientSocket;
 	HANDLE _clientThread;
-	int _clientPort;
-	char* _clientAddress;
-	int _backlog;
-	bool _continue;
 public:
-	__event void Connect();
-	__event void Error(char* function, int errorCode);
-	__event void Start();
-	__event void Stop();
-	Client(char* clientAddress, int clientPort);
-	Client(Client& rClient);
-	~Client();
-	void LaunchclientRoutine();
-	void StopclientRoutine();
-	bool Isclienting();
+	Client(SOCKET socket);
+	int SendSizeHeader(int size);
+	int ReceiveSizeHeader(int* size);
+	int SendBytes(void* bytes, int size);
+	int ReceiveBytes(void* bytes);
+	int SendInt(int value);
+	int ReceiveInt(int* value);
+	template<typename T>
+	int Send(T value);
+	template<typename T>
+	int Receive(T* value);
 private:
-	DWORD clientRoutine();
-	static DWORD ThreadLauncher(LPVOID routineParams);
 };
 
 #endif
