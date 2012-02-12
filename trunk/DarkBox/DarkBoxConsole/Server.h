@@ -1,4 +1,5 @@
 #include <Listener.h>
+#include <Client.h>
 #include "THashTable.h"
 
 class Server {
@@ -14,6 +15,9 @@ public:
 	void ErrorEventHandler(char* function, int errorCode);
 	void StartEventHandler();
 	void StopEventHandler();
+	void ConnectEventHandler(Client* client);
+	void AuthentificationEventHandler(Client* client, void* authentificator);
+	void IdentificationEventHandler(Client* client, void* identificator);
 private:
 	void CleanupListeners();
 };

@@ -54,6 +54,7 @@ void Server::StopListen(char* address, int port) {
 
 void Server::AcceptEventHandler(SOCKET socket) {
 	printf("New connection !\n");
+	Client* client = new Client(socket);
 }
 void Server::ErrorEventHandler(char* function, int errorCode) {
 	printf("Error %d on function %s.\n", errorCode, function);
@@ -63,4 +64,13 @@ void Server::StartEventHandler() {
 }
 void Server::StopEventHandler() {
 	printf("Stop listening.\n");
+}
+void Server::ConnectEventHandler(Client* client) {
+
+}
+void Server::AuthentificationEventHandler(Client* client, void* authentification) {
+
+}
+void Server::IdentificationEventHandler(Client* client, void* identification) {
+
 }

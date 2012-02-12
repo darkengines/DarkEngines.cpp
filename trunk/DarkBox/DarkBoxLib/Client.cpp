@@ -73,6 +73,9 @@ int Client::ReceiveBytes(void* bytes, bool fireProgress) {
 	}
 	return read;
 }
+char* Client::GetAddress() {
+	char* result = 
+}
 template<typename T>
 int Client::Send(T* pValue, int count, bool fireProgress) {
 	return SendBytes(value, sizeof(T)*count, fireProgress);
