@@ -10,31 +10,25 @@ Listener::Listener(char* listenAddress, int listenPort) {
 	_backlog = 256;
 	_continue = false;
 }
+Listener::Listener(Listener& rListener) {
+	
+}
+Listener::~Listener() {
+
+}
 
 void Listener::LaunchListenRoutine()  {
-	HANDLE listenThread;
 	_continue = true;
-	listenThread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)ThreadLauncher, (LPVOID)this, 0, 0);
-	if (listenThread == 0) {
+	_listenThread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)ThreadLauncher, (LPVOID)this, 0, 0);
+	if (_listenThread == 0) {
 		Error("CreateThread", GetLastError());
 	}
+	Start();
 }
 
 DWORD Listener::ListenRoutine() {
-	Start();
-	WORD wVersionRequested;
-    WSADATA wsaData;
-    int error;
-    wVersionRequested = MAKEWORD(2, 2);
-	error = WSAStartup(wVersionRequested, &wsaData);
-	if (error) {
-		Error("WSAStartup", error);
-		Stop();
-		return 1;
-	}
 	_listenSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (_listenSocket == INVALID_SOCKET) {
-		WSACleanup();
 		Error("socket", WSAGetLastError());
 		Stop();
 		return 1;
@@ -42,7 +36,6 @@ DWORD Listener::ListenRoutine() {
 	hostent* host = gethostbyname(_listenAddress);
 	if (!host) {
 		closesocket(_listenSocket);
-		WSACleanup();
 		Error("gethostbyname", WSAGetLastError());
 		Stop();
 		return 1;
@@ -52,10 +45,9 @@ DWORD Listener::ListenRoutine() {
 	socketInfos.sin_family = AF_INET;
 	socketInfos.sin_addr.s_addr = inet_addr(IP);
 	socketInfos.sin_port = htons(_listenPort);
-	error = bind(_listenSocket, (SOCKADDR*)&socketInfos, sizeof(socketInfos));
+	int error = bind(_listenSocket, (SOCKADDR*)&socketInfos, sizeof(socketInfos));
 	if (error == SOCKET_ERROR) {
 		closesocket(_listenSocket);
-		WSACleanup();
 		Error("bind", WSAGetLastError());
 		Stop();
 		return 1;
@@ -63,7 +55,6 @@ DWORD Listener::ListenRoutine() {
 	error = listen(_listenSocket, _backlog);
 	if (error == SOCKET_ERROR) {
 		closesocket(_listenSocket);
-		WSACleanup();
 		Error("listen", WSAGetLastError());
 		Stop();
 		return 1;
@@ -72,18 +63,17 @@ DWORD Listener::ListenRoutine() {
 	while (_continue) {
 		socket = accept(_listenSocket, 0, 0);
 		if (socket == INVALID_SOCKET) {
-			closesocket(_listenSocket);
-			WSACleanup();
 			if (error != 0) {
 				Error("accept", WSAGetLastError());
+				closesocket(_listenSocket);
+				Stop();
+				return 1;
 			}
-			Stop();
-			return 1;
+		} else {
+			Accept(socket);
 		}
-		Accept(socket);
 	}
 	closesocket(_listenSocket);
-	WSACleanup();
 	Stop();
 	return 0;
 }
@@ -95,4 +85,9 @@ DWORD Listener::ThreadLauncher(LPVOID routineParams) {
 void Listener::StopListenRoutine() {
 	_continue = false;
 	closesocket(_listenSocket);
+	WaitForSingleObject(_listenThread, INFINITE);
+}
+
+bool Listener::IsListening() {
+	return _continue;
 }

@@ -18,6 +18,7 @@
 class Listener {
 private:
 	SOCKET _listenSocket;
+	HANDLE _listenThread;
 	int _listenPort;
 	char* _listenAddress;
 	int _backlog;
@@ -28,8 +29,11 @@ public:
 	__event void Start();
 	__event void Stop();
 	Listener(char* listenAddress, int listenPort);
+	Listener(Listener& rListener);
+	~Listener();
 	void LaunchListenRoutine();
 	void StopListenRoutine();
+	bool IsListening();
 private:
 	DWORD ListenRoutine();
 	static DWORD ThreadLauncher(LPVOID routineParams);

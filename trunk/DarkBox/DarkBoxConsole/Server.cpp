@@ -2,18 +2,53 @@
 #include <stdio.h>
 
 Server::Server() {
-	listener = new Listener("192.168.1.3", 7777);
+	_listeners = new THashTable<int, Listener*>(256, 0);
+}
+
+int Server::Init() {
+	WORD wVersionRequested;
+    WSADATA wsaData;
+    int error;
+    wVersionRequested = MAKEWORD(2, 2);
+	error = WSAStartup(wVersionRequested, &wsaData);
+	if (error) {
+		return 1;
+		WSACleanup();
+	}
+	return 0;
+}
+
+void Server::Shutdown() {
+	CleanupListeners();
+	delete _listeners;
+	WSACleanup();
+}
+
+void Server::CleanupListeners() {
+	Listener* listener;
+	listener = _listeners->GetFirst(0);
+	while (listener) {
+		if (listener->IsListening()) {
+			listener->StopListenRoutine();
+		}
+		delete listener;
+		listener = _listeners->GetNext(0);
+	}
+}
+
+void Server::StartListen(char* address, int port) {
+	Listener* listener = 0;
+	listener = new Listener(address, port);
 	__hook(&Listener::Accept, listener, &Server::AcceptEventHandler);
 	__hook(&Listener::Error, listener, &Server::ErrorEventHandler);
 	__hook(&Listener::Start, listener, &Server::StartEventHandler);
 	__hook(&Listener::Stop, listener, &Server::StopEventHandler);
-}
-
-void Server::Start() {
 	listener->LaunchListenRoutine();
+	_listeners->Insert(port, listener);
 }
 
-void Server::Stop() {
+void Server::StopListen(char* address, int port) {
+	Listener* listener = _listeners->Find(port);
 	listener->StopListenRoutine();
 }
 

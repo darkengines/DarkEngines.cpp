@@ -1,15 +1,19 @@
 #include "Listener.h"
+#include "THashTable.h"
 
 class Server {
 private:
-	Listener* listener;
+	THashTable<int, Listener*>* _listeners;
 public:
 	Server();
-	void Start();
-	void Stop();
+	int Init();
+	void StartListen(char* address, int port);
+	void StopListen(char* address, int port);
+	void Shutdown();
 	void AcceptEventHandler(SOCKET socket);
 	void ErrorEventHandler(char* function, int errorCode);
 	void StartEventHandler();
 	void StopEventHandler();
 private:
+	void CleanupListeners();
 };
