@@ -22,7 +22,7 @@ int Client::Connect(char* address, int port) {
         }
 		return 1;
 	}
-	Connect();
+	Connect(this);
 	return 0;
 }
 int Client::SendSizeHeader(int size) {
@@ -73,8 +73,52 @@ int Client::ReceiveBytes(void* bytes, bool fireProgress) {
 	}
 	return read;
 }
-char* Client::GetAddress() {
-	char* result = 
+int Client::GetPort(int* port) {
+	sockaddr_in socketInfos;
+	int len = sizeof(socketInfos);
+	int error = getsockname(_clientSocket, (sockaddr*)&socketInfos, &len);
+	if (error == SOCKET_ERROR) {
+		Error("getsockname", WSAGetLastError());
+		return 1;
+	}
+	*port = ntohs(socketInfos.sin_port);
+}
+int Client::GetAddress(char* address) {
+	sockaddr_in socketInfos;
+	int len = sizeof(socketInfos);
+	int error = getsockname(_clientSocket, (sockaddr*)&socketInfos, &len);
+	if (error == SOCKET_ERROR) {
+		Error("getsockname", WSAGetLastError());
+		return 1;
+	}
+	int length = 0;
+	GetAddressStringLength(&length);
+	memset(address, '\0', length);
+	sprintf(address, "%d.%d.%d.%d", socketInfos.sin_addr.S_un.S_un_b.s_b1,
+									socketInfos.sin_addr.S_un.S_un_b.s_b2,
+									socketInfos.sin_addr.S_un.S_un_b.s_b3,
+									socketInfos.sin_addr.S_un.S_un_b.s_b4);
+}
+int Client::GetAddressStringLength(int* length) {
+	sockaddr_in socketInfos;
+	int len = sizeof(socketInfos);
+	int error = getsockname(_clientSocket, (sockaddr*)&socketInfos, &len);
+	if (error == SOCKET_ERROR) {
+		Error("getsockname", WSAGetLastError());
+		return 1;
+	}
+	in_addr addr = socketInfos.sin_addr;
+	*length =  GetByteStringLength(addr.S_un.S_un_b.s_b1)
+			 + GetByteStringLength(addr.S_un.S_un_b.s_b2)
+			 + GetByteStringLength(addr.S_un.S_un_b.s_b3)
+			 + GetByteStringLength(addr.S_un.S_un_b.s_b4)
+			 + 4;
+	return 0;
+}
+int Client::GetByteStringLength(unsigned char byte) {
+	if (byte > (unsigned char)99) return 3;
+	if (byte > (unsigned char)9) return 2;
+	return 1;
 }
 template<typename T>
 int Client::Send(T* pValue, int count, bool fireProgress) {

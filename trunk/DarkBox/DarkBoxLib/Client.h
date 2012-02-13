@@ -10,6 +10,8 @@
 //////////////////////////////////////////////
 
 #include <Windows.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #define BUFFER_SIZE 2048
 
@@ -38,8 +40,11 @@ public:
 	int Send(T* pValue, int count, bool fireProgress);
 	template<typename T>
 	int Receive(T* pValue, int count, bool fireProgress);
-	char* GetAddress();
+	int GetAddress(char* address);
+	int GetPort(int* port);
+	int GetAddressStringLength(int* length);
 private:
+	int GetByteStringLength(unsigned char byte);
 	int SendBytes(void* bytes, int size, bool fireProgress);
 	int ReceiveBytes(void* bytes, bool fireProgress);
 	DWORD CommandRoutine();

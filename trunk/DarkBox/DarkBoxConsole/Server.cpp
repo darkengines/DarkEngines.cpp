@@ -55,6 +55,15 @@ void Server::StopListen(char* address, int port) {
 void Server::AcceptEventHandler(SOCKET socket) {
 	printf("New connection !\n");
 	Client* client = new Client(socket);
+	char* address = 0;
+	int length = 0;
+	client->GetAddressStringLength(&length);
+	address = (char*)malloc(length);
+	client->GetAddress(address);
+	int port = 0;
+	client->GetPort(&port);
+	printf("From %s:%d\n", address, port);
+	free(address);
 }
 void Server::ErrorEventHandler(char* function, int errorCode) {
 	printf("Error %d on function %s.\n", errorCode, function);
