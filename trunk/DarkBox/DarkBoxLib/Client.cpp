@@ -39,7 +39,7 @@ int Client::SendBytes(void* bytes, int size, bool fireProgress) {
 	}
 	int part = sent = 0;
 	while (sent < size) {
-		part += send(_clientSocket, (const char*)bytes, BUFFER_SIZE, 0);
+		part += send(_clientSocket, (const char*)bytes+sent, size-sent, 0);
 		if (!part) {
 			return 0;
 		}
@@ -62,7 +62,7 @@ int Client::ReceiveBytes(void* bytes, bool fireProgress) {
 	}
 	int part = read = 0;
 	while (read < size) {
-		part += recv(_clientSocket, (char*)bytes, BUFFER_SIZE, 0);
+		part += recv(_clientSocket, (char*)bytes +read, size-read, 0);
 		if (!part) {
 			return 0;
 		}
@@ -82,6 +82,7 @@ int Client::GetPort(int* port) {
 		return 1;
 	}
 	*port = ntohs(socketInfos.sin_port);
+	return 0;
 }
 int Client::GetAddress(char* address) {
 	sockaddr_in socketInfos;
@@ -98,6 +99,7 @@ int Client::GetAddress(char* address) {
 									socketInfos.sin_addr.S_un.S_un_b.s_b2,
 									socketInfos.sin_addr.S_un.S_un_b.s_b3,
 									socketInfos.sin_addr.S_un.S_un_b.s_b4);
+	return 0;
 }
 int Client::GetAddressStringLength(int* length) {
 	sockaddr_in socketInfos;
@@ -120,11 +122,67 @@ int Client::GetByteStringLength(unsigned char byte) {
 	if (byte > (unsigned char)9) return 2;
 	return 1;
 }
-template<typename T>
-int Client::Send(T* pValue, int count, bool fireProgress) {
-	return SendBytes(value, sizeof(T)*count, fireProgress);
+
+DWORD Client::ThreadLauncher(LPVOID routineParams) {
+	RoutineParams* params = (RoutineParams*)routineParams;
+	switch (params->RoutineCode) {
+		case (0): {
+			return params->owner->CommandRoutine();
+			break;
+		}
+		case (1): {
+			return params->owner->UploadRoutine();
+			break;
+		}
+		case (2): {
+			return params->owner->DownloadRoutine();
+			break;
+		}
+		default: {
+			return 0;
+		}
+	}
 }
-template<typename T>
-int Client::Receive(T* pValue, int count, bool fireProgress) {
-	return ReceiveBytes(value, sizeof(T)*count, fireProgress);
+int Client::LaunchCommandRoutine() {
+	_continue = true;
+	RoutineParams* params = new RoutineParams();
+	params->owner = this;
+	params->RoutineCode = 0;
+	_clientThread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)ThreadLauncher, (LPVOID)params, 0, 0);
+	if (_clientThread == 0) {
+		Error("CreateThread", GetLastError());
+		return 1;
+	}
+	return 0;
+}
+DWORD Client::CommandRoutine() {
+	_continue = true;
+	int size = 0;
+	int read = 0;
+	int part = 0;
+	while (_continue) {
+		read = ReceiveSizeHeader(&size);
+		if (read <= 0) {
+			return 1;
+		}
+		char* cmd = (char*) malloc(size+1);
+		memset(cmd, '\0', size+1);
+		read = 0;
+		while (read < size) {
+			part = recv(_clientSocket, cmd + read, size-read, 0);
+			if (part <= 0) {
+				return 1;
+			}
+			read += part;
+		}
+		Command(cmd);
+		free(cmd);
+	}
+	return 0;
+}
+DWORD Client::UploadRoutine() {
+	return 0;
+}
+DWORD Client::DownloadRoutine() {
+	return 0;
 }

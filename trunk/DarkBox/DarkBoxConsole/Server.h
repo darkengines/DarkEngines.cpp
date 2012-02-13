@@ -18,6 +18,7 @@ public:
 	void ConnectEventHandler(Client* client);
 	void AuthentificationEventHandler(Client* client, void* authentificator);
 	void IdentificationEventHandler(Client* client, void* identificator);
+	void CommandEventHandler(char* command);
 private:
 	void CleanupListeners();
 };

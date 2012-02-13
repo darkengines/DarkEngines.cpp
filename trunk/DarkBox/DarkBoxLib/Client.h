@@ -16,6 +16,17 @@
 #define BUFFER_SIZE 2048
 
 //////////////////////////////////////////////
+//	Typedefs
+//////////////////////////////////////////////
+
+class Client;
+
+typedef struct {
+	Client* owner;
+	int RoutineCode;
+} RoutineParams;
+
+//////////////////////////////////////////////
 //	Class name: Client
 //////////////////////////////////////////////
 
@@ -23,6 +34,7 @@ class Client {
 private:
 	SOCKET _clientSocket;
 	HANDLE _clientThread;
+	bool _continue;
 public:
 	__event void Connect(Client* client);
 	__event void Disconnect();
@@ -37,12 +49,17 @@ public:
 	int SendSizeHeader(int size);
 	int ReceiveSizeHeader(int* size);
 	template<typename T>
-	int Send(T* pValue, int count, bool fireProgress);
-	template<typename T>
-	int Receive(T* pValue, int count, bool fireProgress);
+int Send(T* pValue, int count, bool fireProgress) {
+	return SendBytes(pValue, sizeof(T)*count, fireProgress);
+}
+template<typename T>
+int Receive(T* pValue, int count, bool fireProgress) {
+	return ReceiveBytes(pValue, sizeof(T)*count, fireProgress);
+}
 	int GetAddress(char* address);
 	int GetPort(int* port);
 	int GetAddressStringLength(int* length);
+	int LaunchCommandRoutine();
 private:
 	int GetByteStringLength(unsigned char byte);
 	int SendBytes(void* bytes, int size, bool fireProgress);

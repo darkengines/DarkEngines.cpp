@@ -64,6 +64,8 @@ void Server::AcceptEventHandler(SOCKET socket) {
 	client->GetPort(&port);
 	printf("From %s:%d\n", address, port);
 	free(address);
+	__hook(&Client::Command, client, &Server::CommandEventHandler);
+	client->LaunchCommandRoutine();
 }
 void Server::ErrorEventHandler(char* function, int errorCode) {
 	printf("Error %d on function %s.\n", errorCode, function);
@@ -76,6 +78,9 @@ void Server::StopEventHandler() {
 }
 void Server::ConnectEventHandler(Client* client) {
 
+}
+void Server::CommandEventHandler(char* command) {
+	printf("Command: %s\n", command);
 }
 void Server::AuthentificationEventHandler(Client* client, void* authentification) {
 
