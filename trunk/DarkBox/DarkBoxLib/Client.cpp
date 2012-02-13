@@ -157,26 +157,42 @@ int Client::LaunchCommandRoutine() {
 }
 DWORD Client::CommandRoutine() {
 	_continue = true;
-	int size = 0;
-	int read = 0;
-	int part = 0;
+	int error = 0;
+	char* cmd = 0;
 	while (_continue) {
-		read = ReceiveSizeHeader(&size);
-		if (read <= 0) {
-			return 1;
-		}
-		char* cmd = (char*) malloc(size+1);
-		memset(cmd, '\0', size+1);
-		read = 0;
-		while (read < size) {
-			part = recv(_clientSocket, cmd + read, size-read, 0);
-			if (part <= 0) {
-				return 1;
+		error = ReceiveString(&cmd);
+		if (error) {
+			if (cmd) {
+				free(cmd);
 			}
-			read += part;
+			return 1;
 		}
 		Command(cmd);
 		free(cmd);
+		cmd = 0;
+	}
+	return 0;
+}
+int Client::SendString(char* string) {
+	return Send<char>(string, strlen(string), false);
+}
+int Client::ReceiveString(char** string) {
+	int size = 0;
+	int read = 0;
+	int part = 0;
+	read = ReceiveSizeHeader(&size);
+	if (read <= 0) {
+		return 1;
+	}
+	*string = (char*)malloc(size+1);
+	memset(*string, '\0', size+1);
+	read = 0;
+	while (read < size) {
+		part = recv(_clientSocket, (*string) + read, size-read, 0);
+		if (part <= 0) {
+			return 1;
+		}
+		read += part;
 	}
 	return 0;
 }

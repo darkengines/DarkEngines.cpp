@@ -12,6 +12,7 @@
 #include <Windows.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define BUFFER_SIZE 2048
 
@@ -49,13 +50,15 @@ public:
 	int SendSizeHeader(int size);
 	int ReceiveSizeHeader(int* size);
 	template<typename T>
-int Send(T* pValue, int count, bool fireProgress) {
-	return SendBytes(pValue, sizeof(T)*count, fireProgress);
-}
-template<typename T>
-int Receive(T* pValue, int count, bool fireProgress) {
-	return ReceiveBytes(pValue, sizeof(T)*count, fireProgress);
-}
+	int Send(T* pValue, int count, bool fireProgress) {
+		return SendBytes(pValue, sizeof(T)*count, fireProgress);
+	}
+	template<typename T>
+	int Receive(T* pValue, int count, bool fireProgress) {
+		return ReceiveBytes(pValue, sizeof(T)*count, fireProgress);
+	}
+	int SendString(char* string);
+	int ReceiveString(char** string);
 	int GetAddress(char* address);
 	int GetPort(int* port);
 	int GetAddressStringLength(int* length);

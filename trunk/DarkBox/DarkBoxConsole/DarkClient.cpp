@@ -6,6 +6,7 @@ DarkClient::DarkClient() {
 }
 
 int DarkClient::Connect(char* address, int port) {
-	_client->Connect("192.168.1.3", 7777);
-	return _client->Send<char>("Caca dans la bouche !", 21, false);
+	_client->Connect("192.168.1.2", 7777);
+	return _client->SendString("Caca dans la bouche !");
+	_client->Disconnect();
 }
