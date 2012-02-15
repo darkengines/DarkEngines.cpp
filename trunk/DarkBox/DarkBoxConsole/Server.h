@@ -19,6 +19,7 @@ public:
 	void AuthentificationEventHandler(Client* client, void* authentificator);
 	void IdentificationEventHandler(Client* client, void* identificator);
 	void CommandEventHandler(char* command);
+	static DWORD CACAROUTINE(RoutineParams* caca);
 private:
 	void CleanupListeners();
 };

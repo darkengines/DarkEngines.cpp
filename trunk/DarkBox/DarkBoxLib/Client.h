@@ -24,7 +24,7 @@ class Client;
 
 typedef struct {
 	Client* owner;
-	int RoutineCode;
+	void* params;
 } RoutineParams;
 
 //////////////////////////////////////////////
@@ -40,8 +40,6 @@ public:
 	__event void Connect(Client* client);
 	__event void Disconnect();
 	__event void Error(char* function, int errorCode);
-	__event void Authentification(Client* client, void* authentificator);
-	__event void Identification(Client* client, void* identificator);
 	__event void Command(char* command);
 	__event void Progress( int progress);
 	__event void SizeHeader(int size);
@@ -62,15 +60,11 @@ public:
 	int GetAddress(char* address);
 	int GetPort(int* port);
 	int GetAddressStringLength(int* length);
-	int LaunchCommandRoutine();
+	int LaunchRoutine(DWORD(*Routine)(RoutineParams*), RoutineParams* routineParams);
 private:
 	int GetByteStringLength(unsigned char byte);
 	int SendBytes(void* bytes, int size, bool fireProgress);
 	int ReceiveBytes(void* bytes, bool fireProgress);
-	DWORD CommandRoutine();
-	DWORD UploadRoutine();
-	DWORD DownloadRoutine();
-	static DWORD ThreadLauncher(LPVOID routineParams);
 };
 
 #endif

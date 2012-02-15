@@ -122,55 +122,9 @@ int Client::GetByteStringLength(unsigned char byte) {
 	if (byte > (unsigned char)9) return 2;
 	return 1;
 }
-
-DWORD Client::ThreadLauncher(LPVOID routineParams) {
-	RoutineParams* params = (RoutineParams*)routineParams;
-	switch (params->RoutineCode) {
-		case (0): {
-			return params->owner->CommandRoutine();
-			break;
-		}
-		case (1): {
-			return params->owner->UploadRoutine();
-			break;
-		}
-		case (2): {
-			return params->owner->DownloadRoutine();
-			break;
-		}
-		default: {
-			return 0;
-		}
-	}
-}
-int Client::LaunchCommandRoutine() {
-	_continue = true;
-	RoutineParams* params = new RoutineParams();
-	params->owner = this;
-	params->RoutineCode = 0;
-	_clientThread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)ThreadLauncher, (LPVOID)params, 0, 0);
-	if (_clientThread == 0) {
-		Error("CreateThread", GetLastError());
-		return 1;
-	}
-	return 0;
-}
-DWORD Client::CommandRoutine() {
-	_continue = true;
-	int error = 0;
-	char* cmd = 0;
-	while (_continue) {
-		error = ReceiveString(&cmd);
-		if (error) {
-			if (cmd) {
-				free(cmd);
-			}
-			return 1;
-		}
-		Command(cmd);
-		free(cmd);
-		cmd = 0;
-	}
+int Client::LaunchRoutine(DWORD(*Routine)(RoutineParams*), RoutineParams* routineParams) {
+	routineParams->owner = this;
+	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)Routine, (LPVOID)routineParams, 0, 0);
 	return 0;
 }
 int Client::SendString(char* string) {
@@ -194,11 +148,5 @@ int Client::ReceiveString(char** string) {
 		}
 		read += part;
 	}
-	return 0;
-}
-DWORD Client::UploadRoutine() {
-	return 0;
-}
-DWORD Client::DownloadRoutine() {
 	return 0;
 }
