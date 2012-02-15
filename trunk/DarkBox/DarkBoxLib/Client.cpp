@@ -14,13 +14,11 @@ int Client::Connect(char* address, int port) {
     socketInfos.sin_port = htons(port);
     int error = connect(_clientSocket, (SOCKADDR*)&socketInfos, sizeof (socketInfos));
     if (error == SOCKET_ERROR) {
-        Error("connect", WSAGetLastError());
         error = closesocket(_clientSocket);
         if (error == SOCKET_ERROR) {
-            Error("closesocket", WSAGetLastError());
-			return 1;
+			return WSAGetLastError();
         }
-		return 1;
+		return WSAGetLastError();
 	}
 	Connect(this);
 	return 0;
@@ -31,7 +29,7 @@ int Client::SendSizeHeader(int size) {
 int Client::ReceiveSizeHeader(int* size) {
 	return recv(_clientSocket, (char*)size, sizeof(int), 0);
 }
-int Client::SendBytes(void* bytes, int size, bool fireProgress) {
+int Client::SendBytes(void* bytes, int size) {
 	int sent = 0;
 	sent = SendSizeHeader(size);
 	if (!sent) {
@@ -44,21 +42,15 @@ int Client::SendBytes(void* bytes, int size, bool fireProgress) {
 			return 0;
 		}
 		sent += part;
-		if (fireProgress) {
-			Progress(sent);
-		}
 	}
 	return sent;
 }
-int Client::ReceiveBytes(void* bytes, bool fireProgress) {
+int Client::ReceiveBytes(void* bytes) {
 	int read = 0;
 	int size = 0;
 	read = ReceiveSizeHeader(&size);
 	if (!read || !size) {
 		return 0;
-	}
-	if (fireProgress) {
-		SizeHeader(size);
 	}
 	int part = read = 0;
 	while (read < size) {
@@ -67,9 +59,6 @@ int Client::ReceiveBytes(void* bytes, bool fireProgress) {
 			return 0;
 		}
 		read += part;
-		if (fireProgress) {
-			Progress(read);
-		}
 	}
 	return read;
 }
@@ -78,8 +67,7 @@ int Client::GetPort(int* port) {
 	int len = sizeof(socketInfos);
 	int error = getsockname(_clientSocket, (sockaddr*)&socketInfos, &len);
 	if (error == SOCKET_ERROR) {
-		Error("getsockname", WSAGetLastError());
-		return 1;
+		return WSAGetLastError();
 	}
 	*port = ntohs(socketInfos.sin_port);
 	return 0;
@@ -89,8 +77,7 @@ int Client::GetAddress(char* address) {
 	int len = sizeof(socketInfos);
 	int error = getsockname(_clientSocket, (sockaddr*)&socketInfos, &len);
 	if (error == SOCKET_ERROR) {
-		Error("getsockname", WSAGetLastError());
-		return 1;
+		return WSAGetLastError();
 	}
 	int length = 0;
 	GetAddressStringLength(&length);
@@ -106,8 +93,7 @@ int Client::GetAddressStringLength(int* length) {
 	int len = sizeof(socketInfos);
 	int error = getsockname(_clientSocket, (sockaddr*)&socketInfos, &len);
 	if (error == SOCKET_ERROR) {
-		Error("getsockname", WSAGetLastError());
-		return 1;
+		return WSAGetLastError();
 	}
 	in_addr addr = socketInfos.sin_addr;
 	*length =  GetByteStringLength(addr.S_un.S_un_b.s_b1)
@@ -128,7 +114,7 @@ int Client::LaunchRoutine(DWORD(*Routine)(RoutineParams*), RoutineParams* routin
 	return 0;
 }
 int Client::SendString(char* string) {
-	return Send<char>(string, strlen(string), false);
+	return Send<char>(string, strlen(string));
 }
 int Client::ReceiveString(char** string) {
 	int size = 0;

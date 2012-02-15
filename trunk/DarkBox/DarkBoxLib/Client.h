@@ -38,22 +38,17 @@ private:
 	bool _continue;
 public:
 	__event void Connect(Client* client);
-	__event void Disconnect();
-	__event void Error(char* function, int errorCode);
-	__event void Command(char* command);
-	__event void Progress( int progress);
-	__event void SizeHeader(int size);
 	Client(SOCKET socket);
 	int Connect(char* address, int port);
 	int SendSizeHeader(int size);
 	int ReceiveSizeHeader(int* size);
 	template<typename T>
-	int Send(T* pValue, int count, bool fireProgress) {
-		return SendBytes(pValue, sizeof(T)*count, fireProgress);
+	int Send(T* pValue, int count) {
+		return SendBytes(pValue, sizeof(T)*count);
 	}
 	template<typename T>
-	int Receive(T* pValue, int count, bool fireProgress) {
-		return ReceiveBytes(pValue, sizeof(T)*count, fireProgress);
+	int Receive(T* pValue, int count) {
+		return ReceiveBytes(pValue, sizeof(T)*count);
 	}
 	int SendString(char* string);
 	int ReceiveString(char** string);
@@ -63,8 +58,8 @@ public:
 	int LaunchRoutine(DWORD(*Routine)(RoutineParams*), RoutineParams* routineParams);
 private:
 	int GetByteStringLength(unsigned char byte);
-	int SendBytes(void* bytes, int size, bool fireProgress);
-	int ReceiveBytes(void* bytes, bool fireProgress);
+	int SendBytes(void* bytes, int size);
+	int ReceiveBytes(void* bytes);
 };
 
 #endif
