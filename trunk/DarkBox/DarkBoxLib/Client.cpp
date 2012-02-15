@@ -7,6 +7,9 @@
 Client::Client(SOCKET socket) {
 	_clientSocket = socket;
 }
+Client::~Client() {
+	closesocket(_clientSocket);
+}
 int Client::Connect(char* address, int port) {
 	sockaddr_in socketInfos;
     socketInfos.sin_family = AF_INET;
@@ -20,7 +23,11 @@ int Client::Connect(char* address, int port) {
         }
 		return WSAGetLastError();
 	}
-	Connect(this);
+	ConnectEvent();
+	return 0;
+}
+int Client::Disconnect() {
+	closesocket(_clientSocket);
 	return 0;
 }
 int Client::SendSizeHeader(int size) {

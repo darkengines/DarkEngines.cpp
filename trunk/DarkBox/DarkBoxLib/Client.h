@@ -37,9 +37,11 @@ private:
 	HANDLE _clientThread;
 	bool _continue;
 public:
-	__event void Connect(Client* client);
+	__event void ConnectEvent();
 	Client(SOCKET socket);
+	~Client();
 	int Connect(char* address, int port);
+	int Disconnect();
 	int SendSizeHeader(int size);
 	int ReceiveSizeHeader(int* size);
 	template<typename T>

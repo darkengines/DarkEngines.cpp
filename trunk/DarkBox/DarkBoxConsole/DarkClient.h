@@ -7,6 +7,6 @@ private:
 public:
 	DarkClient();
 	int Connect(char* address, int port);
-
+	void ConnectEventHandler();
 private:
 };

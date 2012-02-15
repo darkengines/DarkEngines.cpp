@@ -53,20 +53,18 @@ void Server::StopListen(char* address, int port) {
 }
 
 void Server::AcceptEventHandler(SOCKET socket) {
-	printf("New connection !\n");
 	Client* client = new Client(socket);
-	char* address = 0;
-	int length = 0;
-	client->GetAddressStringLength(&length);
-	address = (char*)malloc(length);
-	client->GetAddress(address);
-	int port = 0;
-	client->GetPort(&port);
-	printf("From %s:%d\n", address, port);
-	free(address);
-	RoutineParams params;
-	params.params = "Caca dans la bouche !";
-	client->LaunchRoutine(CACAROUTINE, &params);
+	char* id = 0;
+	client->ReceiveString(&id);
+	if (!memcmp(id, "command", strlen(id))) {
+		printf("New client !\n");
+		RoutineParams params;
+		client->LaunchRoutine(CommandRoutine, &params);
+	} else {
+		printf("Rejected client !\n");
+		delete client;
+	}
+	free(id);
 }
 void Server::ErrorEventHandler(char* function, int errorCode) {
 	printf("Error %d on function %s.\n", errorCode, function);
@@ -77,16 +75,12 @@ void Server::StartEventHandler() {
 void Server::StopEventHandler() {
 	printf("Stop listening.\n");
 }
-void Server::ConnectEventHandler(Client* client) {
-
-}
-DWORD Server::CACAROUTINE(RoutineParams* caca) {
-	char* n;
-	int size;
-	caca->owner->GetAddressStringLength(&size);
-	n = (char*)malloc(size);
-	caca->owner->GetAddress(n);
-	printf("%s ET AUSSI: %s\n", n, caca->params);
-	free(n);
+DWORD Server::CommandRoutine(RoutineParams* commandRoutineParams) {
+	char* cmd = 0;
+	while (!commandRoutineParams->owner->ReceiveString(&cmd)) {
+		printf("%s \n", cmd);
+		free(cmd);
+	}
+	printf("End of command routine.\n");
 	return 0;
 }
