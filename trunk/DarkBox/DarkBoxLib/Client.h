@@ -33,11 +33,11 @@ typedef struct {
 
 class Client {
 private:
-	SOCKET _clientSocket;
 	HANDLE _clientThread;
 	bool _continue;
 public:
-	__event void ConnectEvent();
+SOCKET _clientSocket;
+	__event void ConnectEvent(Client* client);
 	Client(SOCKET socket);
 	~Client();
 	int Connect(char* address, int port);
@@ -50,7 +50,7 @@ public:
 	}
 	template<typename T>
 	int Receive(T* pValue, int count) {
-		return ReceiveBytes(pValue, sizeof(T)*count);
+		return ReceiveBytes(pValue);
 	}
 	int SendString(char* string);
 	int ReceiveString(char** string);

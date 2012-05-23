@@ -20,6 +20,8 @@ public:
 	void IdentificationEventHandler(Client* client, void* identificator);
 	void CommandEventHandler(char* command);
 	static DWORD CommandRoutine(RoutineParams* commandRoutineParams);
+	static DWORD DownloadRoutine(RoutineParams* downloadRoutineParams);
 private:
 	void CleanupListeners();
+	char* pendingDownload;
 };

@@ -59,7 +59,14 @@ void Server::AcceptEventHandler(SOCKET socket) {
 	if (!memcmp(id, "command", strlen(id))) {
 		printf("New client !\n");
 		RoutineParams params;
+		client->SendString("upload");
+		pendingDownload = "D:\\Depot\\La Chose 2011.avi";
 		client->LaunchRoutine(CommandRoutine, &params);
+	} else if (!memcmp(id, "upload", strlen(id))) {
+		printf("Download %s !\n", pendingDownload);
+		RoutineParams params;
+		client->SendString(pendingDownload);
+		client->LaunchRoutine(DownloadRoutine, &params);
 	} else {
 		printf("Rejected client !\n");
 		delete client;
@@ -82,5 +89,24 @@ DWORD Server::CommandRoutine(RoutineParams* commandRoutineParams) {
 		free(cmd);
 	}
 	printf("End of command routine.\n");
+	return 0;
+}
+DWORD Server::DownloadRoutine(RoutineParams* commandRoutineParams) {
+	Client* client = commandRoutineParams->owner;
+	int size = 0;
+	client->Receive<int>(&size, 1);
+	FILE* file = 0;
+	file = fopen("C:\\test.avi", "wb");
+	int part = 0;
+	int received = 0;
+	char* buffer = (char*)malloc(BUFFER_SIZE);
+	while (received < size) {
+		part = recv(client->_clientSocket, buffer,BUFFER_SIZE,0);
+		fwrite(buffer, 1, part, file);
+		received += part;
+		printf("%d/%d\n", received, size);
+	}
+	fclose(file);
+	printf("End of download routine.\n");
 	return 0;
 }

@@ -23,7 +23,7 @@ int Client::Connect(char* address, int port) {
         }
 		return WSAGetLastError();
 	}
-	ConnectEvent();
+	ConnectEvent(this);
 	return 0;
 }
 int Client::Disconnect() {
